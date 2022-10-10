@@ -22,6 +22,6 @@ void initializeSEAL();
 void windowing(std::vector<std::vector<uint32_t>>& vec, uint32_t y,
                uint32_t bound, uint32_t modulus);
 std::string hash_and_fhe_encrypt(std::vector<uint32_t>& items);
-void process_psi_answer(std::string answer_raw);
+std::string process_psi_answer(std::string answer_raw);
 
 #endif  // _APSI_H_

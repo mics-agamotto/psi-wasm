@@ -12,20 +12,24 @@ using std::vector;
 using namespace seal;
 
 /* Iterative Function to calculate (x^y)%p in O(log y) */
-static int power_mod(long long x, unsigned int y, int p) {
-  int res = 1;  // Initialize result
+static int power_mod(long long x, unsigned int y, int p)
+{
+  int res = 1; // Initialize result
 
-  x = x % p;  // Update x if it is more than or
-              // equal to p
+  x = x % p; // Update x if it is more than or
+             // equal to p
 
-  if (x == 0) return 0;  // In case x is divisible by p;
+  if (x == 0)
+    return 0; // In case x is divisible by p;
 
-  while (y > 0) {
+  while (y > 0)
+  {
     // If y is odd, multiply x with result
-    if (y & 1) res = (res * x) % p;
+    if (y & 1)
+      res = (res * x) % p;
 
     // y must be even now
-    y = y >> 1;  // y = y/2
+    y = y >> 1; // y = y/2
     x = (x * x) % p;
   }
   return res;
@@ -48,35 +52,44 @@ bound
               windowed_y[i][j] = pow(y, (i+1) * base ** j, modulus)
   return windowed_y
 */
-void windowing(vector<vector<uint32_t>>& vec, uint32_t y, uint32_t bound,
-               uint32_t modulus) {
-  for (int i = 0; i < params::base - 1; i++) {
+void windowing(vector<vector<uint32_t>> &vec, uint32_t y, uint32_t bound,
+               uint32_t modulus)
+{
+  for (int i = 0; i < params::base - 1; i++)
+  {
     vector<uint32_t> subvec;
-    for (int j = 0; j < params::logB_ell; j++) {
+    for (int j = 0; j < params::logB_ell; j++)
+    {
       subvec.push_back(0);
     }
     vec.push_back(subvec);
   }
-  for (int i = 0; i < params::base - 1; i++) {
-    for (int j = 0; j < params::logB_ell; j++) {
+  for (int i = 0; i < params::base - 1; i++)
+  {
+    for (int j = 0; j < params::logB_ell; j++)
+    {
       int val = (i + 1) * power_mod(params::base, j, modulus);
-      if (val - 1 < bound) {
+      if (val - 1 < bound)
+      {
         vec[i][j] = power_mod(y, val, modulus);
       }
     }
   }
 }
 
-namespace apsi {
-EncryptionParameters* parms;
-SEALContext* ctx;
-KeyGenerator* keygen;
-PublicKey* pk;
-Cuckoo* cuckoo;
-}  // namespace apsi
+namespace apsi
+{
+  EncryptionParameters *parms;
+  SEALContext *ctx;
+  KeyGenerator *keygen;
+  PublicKey *pk;
+  Cuckoo *cuckoo;
+} // namespace apsi
 
-void initializeSEAL() {
-  if (apsi::ctx != nullptr) {
+void initializeSEAL()
+{
+  if (apsi::ctx != nullptr)
+  {
     return;
   }
 
@@ -98,14 +111,17 @@ void initializeSEAL() {
   apsi::cuckoo = new Cuckoo(seeds);
 }
 
-std::string hash_and_fhe_encrypt(vector<uint32_t>& items) {
-  for (auto item : items) {
+std::string hash_and_fhe_encrypt(vector<uint32_t> &items)
+{
+  for (auto item : items)
+  {
     std::cout << "Inserting " << item << std::endl;
     apsi::cuckoo->Insert(item);
   }
 
   vector<vector<vector<uint32_t>>> windowed_items;
-  for (int i = 0; i < Cuckoo::number_of_bins_; i++) {
+  for (int i = 0; i < Cuckoo::number_of_bins_; i++)
+  {
     auto item = apsi::cuckoo->GetItemAt(i);
     auto item_val = item.value_or(1 << params::log2_plain_modulus);
     vector<vector<uint32_t>> window;
@@ -118,12 +134,16 @@ std::string hash_and_fhe_encrypt(vector<uint32_t>& items) {
   Encryptor encryptor(*apsi::ctx, *apsi::pk);
 
   json::jobject serialized_ciphertexts;
-  for (int i = 0; i < params::base - 1; i++) {
-    for (int j = 0; j < params::logB_ell; j++) {
+  for (int i = 0; i < params::base - 1; i++)
+  {
+    for (int j = 0; j < params::logB_ell; j++)
+    {
       int val = (i + 1) * power_mod(params::base, j, params::plain_modulus);
-      if (val - 1 < params::minibin_capacity) {
+      if (val - 1 < params::minibin_capacity)
+      {
         vector<int64_t> plain_query;
-        for (int k = 0; k < windowed_items.size(); k++) {
+        for (int k = 0; k < windowed_items.size(); k++)
+        {
           plain_query.push_back(windowed_items[k][i][j]);
         }
 
@@ -158,7 +178,8 @@ std::string hash_and_fhe_encrypt(vector<uint32_t>& items) {
   return serialized_ciphertexts.as_string();
 }
 
-void process_psi_answer(std::string answer_raw) {
+std::string process_psi_answer(std::string answer_raw)
+{
   std::cout << "process_psi_answer" << std::endl;
 
   auto answer = json::jobject::parse(answer_raw);
@@ -168,7 +189,8 @@ void process_psi_answer(std::string answer_raw) {
   BatchEncoder encoder(*apsi::ctx);
 
   vector<vector<uint64_t>> plaintexts;
-  for (auto ct_encoded : cts) {
+  for (auto ct_encoded : cts)
+  {
     std::stringstream b64_stream;
     b64_stream << '\"' << ct_encoded << '\"';
     auto ct_encoded_unescaped =
@@ -190,15 +212,24 @@ void process_psi_answer(std::string answer_raw) {
 
   std::cout << "decrypted answers" << std::endl;
 
-  for (int i = 0; i < params::alpha; i++) {
-    for (int j = 0; j < params::poly_modulus_degree; j++) {
-      if (plaintexts[i][j] == 0) {
+  vector<uint32_t> found_items;
+  for (int i = 0; i < params::alpha; i++)
+  {
+    for (int j = 0; j < params::poly_modulus_degree; j++)
+    {
+      if (plaintexts[i][j] == 0)
+      {
         auto item = apsi::cuckoo->GetItemAt(j).value();
         auto common_element = reconstruct_item(
             item, j,
             apsi::cuckoo->GetHashSeeds()[item % (1 << Cuckoo::log_no_hashes_)]);
-        std::cout << "Found element " << common_element << std::endl;
+        found_items.push_back(common_element);
       }
     }
   }
+
+  json::jobject serialized_resp;
+  serialized_resp["items"] = found_items;
+
+  return serialized_resp.as_string();
 }

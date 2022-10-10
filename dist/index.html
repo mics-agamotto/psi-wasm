@@ -1,34 +1,55 @@
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Agamotto</title>
-  </head>
 
-  <body>
-    <h1>Agamotto: End-to-end encrypted, privacy-preserving, shared identity lookup</h1>
-    <input type="text" id="names"/> <br> <br>
-    <input type="file" id="upload"/>
-    <script>
+<head>
+  <meta charset="utf-8" />
+  <title>Agamotto</title>
+</head>
+
+<body>
+  <h1>Agamotto: End-to-end encrypted, privacy-preserving, shared identity lookup</h1>
+  <input type="text" id="items" /> <button onClick="encrypt()" id="encrypt">Query</button> <br> <br>
+  <input type="file" id="upload" /> <button onClick="parse()" id="parse">Decrypt</button>
+  <script>
     var Module = {
-      onRuntimeInitialized: function() {
-        console.log(Module.encryptQuery());
+      onRuntimeInitialized: function () {
+        Module.initializeSEAL()
       }
-    };
-
-    window.rawFile = "";
-    document.getElementById("upload").onchange = e => {
-    if (e.target.files.length == 0) {
-        return
     }
-    file = e.target.files[0]
-    var reader = new FileReader()
-    reader.onload = readerEvent => {
+
+    window.rawFile = ""
+    document.getElementById("upload").onchange = e => {
+      if (e.target.files.length == 0) {
+        return
+      }
+      file = e.target.files[0]
+      var reader = new FileReader()
+      reader.onload = readerEvent => {
         window.rawFile = unescape(readerEvent.target.result)
         console.log("Finished reading raw file!", rawFile.length)
-    }
+      }
       reader.readAsBinaryString(file)
     }
+
+    function encrypt() {
+      let items = document.getElementById("items").value.split(",")
+      items = items.map(e => parseInt(e.trim()))
+      let requestObj = {
+        items: items
+      }
+      let requestCt = Module.encryptQuery(JSON.stringify(requestObj))
+      console.log(requestCt)
+    }
+
+    function parse() {
+      try {
+        let answer = Module.processPSI(window.rawFile)
+        console.log(JSON.parse(answer))
+      } catch (exception) {
+        Module.debugMsg(exception)
+      }
+    }
   </script>
-    <script src="seal_wasm.js"></script>
-  </body>
+  <script src="seal_wasm.js"></script>
+</body>
+
 </html>

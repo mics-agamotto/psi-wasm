@@ -4,20 +4,18 @@
 #include <vector>
 
 #include "apsi.h"
+#include "json.h"
 
 using namespace std;
 using namespace emscripten;
 
-string encryptQuery() {
-  initializeSEAL();
-
-  vector<uint32_t> query;
-  query.push_back(123454321);
-  query.push_back(222222);
-  query.push_back(3213);
-  query.push_back(44231);
-  query.push_back(515314);
-  return hash_and_fhe_encrypt(query);
+string encryptQuery(string query_raw) {
+  vector<uint32_t> items = json::jobject::parse(query_raw)["items"];
+  cout << "Received query in plaintext" << endl;
+  for (auto item : items) {
+    cout << "Item: " << item << endl;
+  }
+  return hash_and_fhe_encrypt(items);
 }
 
 void debugMsg(intptr_t exceptionPtr) {
@@ -26,6 +24,7 @@ void debugMsg(intptr_t exceptionPtr) {
 }
 
 EMSCRIPTEN_BINDINGS(my_module) {
+  emscripten::function("initializeSEAL", &initializeSEAL);
   emscripten::function("encryptQuery", &encryptQuery);
   emscripten::function("processPSI", &process_psi_answer);
   emscripten::function("debugMsg", &debugMsg);
