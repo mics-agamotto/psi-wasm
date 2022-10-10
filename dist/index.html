@@ -1,0 +1,34 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Agamotto</title>
+  </head>
+
+  <body>
+    <h1>Agamotto: End-to-end encrypted, privacy-preserving, shared identity lookup</h1>
+    <input type="text" id="names"/> <br> <br>
+    <input type="file" id="upload"/>
+    <script>
+    var Module = {
+      onRuntimeInitialized: function() {
+        console.log(Module.encryptQuery());
+      }
+    };
+
+    window.rawFile = "";
+    document.getElementById("upload").onchange = e => {
+    if (e.target.files.length == 0) {
+        return
+    }
+    file = e.target.files[0]
+    var reader = new FileReader()
+    reader.onload = readerEvent => {
+        window.rawFile = unescape(readerEvent.target.result)
+        console.log("Finished reading raw file!", rawFile.length)
+    }
+      reader.readAsBinaryString(file)
+    }
+  </script>
+    <script src="seal_wasm.js"></script>
+  </body>
+</html>
