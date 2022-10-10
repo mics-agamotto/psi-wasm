@@ -171,9 +171,11 @@ std::string hash_and_fhe_encrypt(vector<uint32_t> &items)
   apsi::pk->save(pk_stream);
   serialized_ciphertexts["pk"] = base64_encode(pk_stream.str());
 
+#ifdef DEBUG_SK
   std::stringstream sk_stream;
   apsi::keygen->secret_key().save(sk_stream);
   serialized_ciphertexts["sk"] = base64_encode(sk_stream.str());
+#endif
 
   return serialized_ciphertexts.as_string();
 }
