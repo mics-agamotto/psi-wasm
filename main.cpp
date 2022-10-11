@@ -23,11 +23,16 @@ void debugMsg(intptr_t exceptionPtr) {
        << endl;
 }
 
+string hello() {
+  return "Hello World from WASM!";
+}
+
 EMSCRIPTEN_BINDINGS(my_module) {
   emscripten::function("initializeSEAL", &initializeSEAL);
   emscripten::function("encryptQuery", &encryptQuery);
   emscripten::function("processPSI", &process_psi_answer);
   emscripten::function("debugMsg", &debugMsg);
+  emscripten::function("hello", &hello);
 }
 
 int main() { return 0; }
